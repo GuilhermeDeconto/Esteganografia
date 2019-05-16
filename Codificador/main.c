@@ -22,7 +22,7 @@ void cripto(char vector[], int size);
 
 void splitBitsWords(char letra, unsigned char *bit8_7, unsigned char *bit6_5, unsigned char *bit4_3, unsigned char *bit2_1);
 
-void esteganografia(char vector[], int type, float num_bytes, Img pic);
+void esteganography(char vector[], int type, float num_bytes, Img pic);
 
 void load(char *name, Img *pic);
 
@@ -88,8 +88,8 @@ int main(int argc, char **argv)
     // Realiza a criptografia da message
     cripto(messageWithSymbol, messageSizeWithSymbol);
 
-    esteganografia(passwordWithSymbol, 0, ceil(num_bytesPassword), pic); // Arredonda pra cima o size, valor 0 significa que é uma password.
-    esteganografia(messageWithSymbol, 1, ceil(num_bytes), pic);          // Arredonda pra cima o size, valor 1 significa que é uma message.
+    esteganography(passwordWithSymbol, 0, ceil(num_bytesPassword), pic); // Arredonda pra cima o size, valor 0 significa que é uma password.
+    esteganography(messageWithSymbol, 1, ceil(num_bytes), pic);          // Arredonda pra cima o size, valor 1 significa que é uma message.
 
     //Salva a imagem
     SOIL_save_image("saida.bmp", SOIL_SAVE_TYPE_BMP, pic.width, pic.height, 3, pic.img);
@@ -130,7 +130,7 @@ void splitBitsWords(char letra, unsigned char *bit8_7, unsigned char *bit6_5, un
 // O type pode ser 0 ou 1.
 // se for 0 significa q o vector que ele esta passando é uma password entao ele vai botar a password na primeira linha da imagem
 // se for 1 significa q o vector é uma message entao ele vai botar a message na segunda linhha da imagem.
-void esteganografia(char vector[], int type, float num_bytes, Img pic)
+void esteganography(char vector[], int type, float num_bytes, Img pic)
 {
 
     int j = 0;                      //contador da palavra a cada laco 3 letras
@@ -221,8 +221,8 @@ void esteganografia(char vector[], int type, float num_bytes, Img pic)
 
 // A criptografia utilizada é a cifra de cesar, simplesmente trocamos a letra atual pela proxima do alfabeto.
 void cripto(char vector[], int size)
-{   
-   int i;
+{
+    int i;
     for (i = 0; i < size; i++)
     {
         if (vector[i] == 'z')
