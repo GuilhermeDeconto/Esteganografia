@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>		// Para usar strings
+#include <string.h>
+#include <stdbool.h>
 #include <math.h>
-
-// SOIL é a biblioteca para leitura das imagens
 #include "SOIL.h"
 
 // Um pixel RGB
@@ -18,13 +17,15 @@ typedef struct {
 } Img;
 
 
-void decrypt(char vector[], int size);
+void decrypt(char vector[]);
 
 char splitBitWords(unsigned char* bit8_7, unsigned char* bit6_5, unsigned char* bit4_3, unsigned char* bit2_1);
 
-void decodeEsteganography(char vector[], int type, Img pic);
+void decodePass(Img pic);
+char decodeMessage(Img pic);
+void decodeEsteganography(char vector[], bool isMessage, Img pic);
 
-int calcSize(int type, Img pic);
+int calcSize(bool isMessage, Img pic);
 
 void concatLetter(char word, char vector[], int size);
 
@@ -36,6 +37,7 @@ void load(char* name, Img* pic)
 {
     int chan;
     pic->img = (unsigned char*) SOIL_load_image(name, &pic->width, &pic->height, &chan, SOIL_LOAD_RGB);
+    
     if(!pic->img)
     {
         printf( "SOIL loading error: '%s'\n", SOIL_last_result() );
@@ -54,32 +56,13 @@ int main(int argc, char** argv)
     }
     load("saida.bmp", &pic);
 
-    int verifier = 0;
+    decodePass(pic);
 
-    int passwordSize = calcSize(0, pic);
-    char decryptedPassword[passwordSize];
-    decodeEsteganography(decryptedPassword, 0, pic);
+    char decodedMessage = decodeMessage(pic);
 
-    char password[passwordSize];
+    decrypt(decodedMessage);
 
-    do{
-        printf("Digite a password:");
-        scanf(" %[^\n]s", password);
-
-        if(strcmp(password, decryptedPassword) == 0){
-            verifier = 1;
-        }else{
-            printf("\nSenha incorreta! Digite novamente\n\n");
-        }
-    }while (verifier < 1);
-
-    int messageSize = calcSize(1, pic);
-    char decryptedMessage[messageSize];
-    decodeEsteganography(decryptedMessage, 1, pic);
-
-    decrypt(decryptedMessage, messageSize);
-
-    printf("\nMENSAGEM: %s\n", decryptedMessage);
+    printf("\nMENSAGEM: %s\n", decodedMessage);
 
     free(pic.img);
 }
@@ -99,14 +82,35 @@ char splitBitWords(unsigned char* bit8_7, unsigned char* bit6_5, unsigned char* 
 
     return word;
 }
+void decodePass(Img pic){
+    
+    int passwordSize = calcSize(0, pic);
+    char decryptedPassword[passwordSize];
+    decodeEsteganography(decryptedPassword, false, pic);
 
+    char password[passwordSize];
 
-    // Bota a word no RGB
-    // O type pode ser 0 ou 1.
-    // se for 0 significa q o vector que ele esta passado é uma password entao ele vai botar a password na primeira linha da imagem
-    // se for 1 significa q o vector é uma mensagem entao ele vai botar a msg na segunda linhha da imagem.
+    bool isVerified = false;
+    while (isVerified == false){
+        printf("Digite a password:");
+        scanf(" %[^\n]s", password);
 
-void decodeEsteganography(char vector[], int type, Img pic){
+        if(strcmp(password, decryptedPassword) == 0){
+            isVerified = true;
+        }else{
+            printf("\nSenha incorreta! Digite novamente\n\n");
+        }
+    };
+}
+
+char decodeMessage(Img pic){
+    int messageSize = calcSize(1, pic);
+    char decryptedMessage[messageSize];
+    decodeEsteganography(decryptedMessage, true, pic);
+    return decryptedMessage;
+}
+
+void decodeEsteganography(char vector[], bool isMessage, Img pic){
 
     unsigned int mask = 0b00000011;
 
@@ -117,7 +121,7 @@ void decodeEsteganography(char vector[], int type, Img pic){
     int starts;
     int num_bytes = pic.width * pic.height;
 
-    if(type >= 1){
+    if(isMessage == true){
         starts = pic.width;
     }else{
         starts = 0;
@@ -178,7 +182,7 @@ void decodeEsteganography(char vector[], int type, Img pic){
 }
 
 
-int calcSize(int type, Img pic){
+int calcSize(bool isMessage, Img pic){
 
     unsigned int mask = 0b00000011;
 
@@ -188,7 +192,7 @@ int calcSize(int type, Img pic){
     int starts;
     int num_bytes = pic.width * pic.height;
 
-    if(type >= 1){
+    if(isMessage == true){
         starts = pic.width;
     }else{
         starts = 0;
@@ -246,7 +250,9 @@ int calcSize(int type, Img pic){
     return 0;
 }
 
-void decrypt(char vector[], int size) {
+void decrypt(char vector[]) {
+
+    int size = strlen(vector);
     int i;
 
     for(i= 0; i<size; i++){
